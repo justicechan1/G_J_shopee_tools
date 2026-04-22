@@ -1,4 +1,5 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const BASE_URL       = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const CRAWL_BASE_URL = import.meta.env.VITE_CRAWL_API_URL || 'http://localhost:8000';
 
 // 동시에 여러 401이 와도 갱신은 1번만 — 나머지는 같은 Promise를 기다림
 let _refreshPromise = null;
@@ -215,17 +216,41 @@ export const crawlItemsApi = {
 // ────────────────────────────────────────────────────────────
 //  Crawl Jobs
 // ────────────────────────────────────────────────────────────
+async function crawlRequest(path, options = {}, _retry = false) {
+  const { token, ...rest } = options;
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(rest.headers || {}),
+  };
+  const res = await fetch(`${CRAWL_BASE_URL}${path}`, { ...rest, headers });
+
+  if (res.status === 401 && !_retry) {
+    try {
+      const newToken = await _doRefresh();
+      return crawlRequest(path, { ...options, token: newToken }, true);
+    } catch { /* 갱신 실패 */ }
+  }
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: '서버 오류가 발생했습니다' }));
+    throw new Error(err.detail || '요청에 실패했습니다');
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
 export const crawlJobsApi = {
   start:  (keywords, token) =>
-    request('/api/crawl/start', { method: 'POST', body: JSON.stringify({ keywords }), token }),
+    crawlRequest('/api/crawl/start', { method: 'POST', body: JSON.stringify({ keywords }), token }),
   status: (jobId, token) =>
-    request(`/api/crawl/jobs/${jobId}`, { token }),
+    crawlRequest(`/api/crawl/jobs/${jobId}`, { token }),
   stop:   (jobId, token) =>
-    request(`/api/crawl/stop/${jobId}`, { method: 'POST', token }),
+    crawlRequest(`/api/crawl/stop/${jobId}`, { method: 'POST', token }),
   list:   (token) =>
-    request('/api/crawl/jobs', { token }),
+    crawlRequest('/api/crawl/jobs', { token }),
   logs:   (jobId, offset, token) =>
-    request(`/api/crawl/logs/${jobId}?offset=${offset}`, { token }),
+    crawlRequest(`/api/crawl/logs/${jobId}?offset=${offset}`, { token }),
 };
 
 // ────────────────────────────────────────────────────────────
