@@ -4,6 +4,8 @@ import { useStore } from '../store/useStore';
 import { authApi } from '../utils/api';
 import styles from './Layout.module.css';
 
+const IS_DEV = import.meta.env.DEV;
+
 const NAV = [
   {
     group: '계산기',
@@ -17,13 +19,13 @@ const NAV = [
     group: '데이터',
     items: [
       { to: '/data/saved', icon: '📦', label: '상품 저장 내역' },
-      { to: '/data/crawl', icon: '📋', label: '크롤링 내역' },
+      ...(IS_DEV ? [{ to: '/data/crawl', icon: '📋', label: '크롤링 내역' }] : []),
     ],
   },
   {
     group: '도구',
     items: [
-      { to: '/tools/crawl',  icon: '🔍', label: '크롤링' },
+      ...(IS_DEV ? [{ to: '/tools/crawl', icon: '🔍', label: '크롤링' }] : []),
       { to: '/tools/manual', icon: '✏️',  label: '수동 상품 등록' },
     ],
   },

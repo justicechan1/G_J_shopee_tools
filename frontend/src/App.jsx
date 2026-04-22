@@ -8,13 +8,15 @@ import VNCalc    from './pages/calculator/VNCalc';
 import SGCalc    from './pages/calculator/SGCalc';
 import RecCalc   from './pages/calculator/RecCalc';
 import SavedData from './pages/data/SavedData';
-import CrawlData from './pages/data/CrawlData';
-import CrawlTool   from './pages/tools/CrawlTool';
 import ManualTool  from './pages/tools/ManualTool';
 import { MarginSettings, RateSettings, FeeSettings } from './pages/settings/Settings';
 import Guide from './pages/guide/Guide';
 
 import './styles/global.css';
+
+const IS_DEV = import.meta.env.DEV;
+const CrawlData = IS_DEV ? React.lazy(() => import('./pages/data/CrawlData')) : null;
+const CrawlTool = IS_DEV ? React.lazy(() => import('./pages/tools/CrawlTool')) : null;
 
 function ProtectedRoute({ children }) {
   const token = useStore((s) => s.token);
@@ -34,20 +36,22 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Layout>
-                <Routes>
-                  <Route path="/"               element={<Navigate to="/calc/sg" replace />} />
-                  <Route path="/calc/vn"        element={<VNCalc />} />
-                  <Route path="/calc/sg"        element={<SGCalc />} />
-                  <Route path="/calc/rec"       element={<RecCalc />} />
-                  <Route path="/data/saved"     element={<SavedData />} />
-                  <Route path="/data/crawl"     element={<CrawlData />} />
-                  <Route path="/tools/crawl"    element={<CrawlTool />} />
-                  <Route path="/tools/manual"   element={<ManualTool />} />
-                  <Route path="/settings/margin" element={<MarginSettings />} />
-                  <Route path="/settings/rate"   element={<RateSettings />} />
-                  <Route path="/settings/fee"    element={<FeeSettings />} />
-                  <Route path="/guide"           element={<Guide />} />
-                </Routes>
+                <React.Suspense fallback={null}>
+                  <Routes>
+                    <Route path="/"               element={<Navigate to="/calc/sg" replace />} />
+                    <Route path="/calc/vn"        element={<VNCalc />} />
+                    <Route path="/calc/sg"        element={<SGCalc />} />
+                    <Route path="/calc/rec"       element={<RecCalc />} />
+                    <Route path="/data/saved"     element={<SavedData />} />
+                    {IS_DEV && <Route path="/data/crawl"  element={<CrawlData />} />}
+                    {IS_DEV && <Route path="/tools/crawl" element={<CrawlTool />} />}
+                    <Route path="/tools/manual"   element={<ManualTool />} />
+                    <Route path="/settings/margin" element={<MarginSettings />} />
+                    <Route path="/settings/rate"   element={<RateSettings />} />
+                    <Route path="/settings/fee"    element={<FeeSettings />} />
+                    <Route path="/guide"           element={<Guide />} />
+                  </Routes>
+                </React.Suspense>
               </Layout>
             </ProtectedRoute>
           }
