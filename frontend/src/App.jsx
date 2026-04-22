@@ -15,7 +15,7 @@ import Guide from './pages/guide/Guide';
 import './styles/global.css';
 
 const IS_DEV = import.meta.env.DEV;
-const CrawlData = IS_DEV ? React.lazy(() => import('./pages/data/CrawlData')) : null;
+import CrawlData from './pages/data/CrawlData';
 const CrawlTool = IS_DEV ? React.lazy(() => import('./pages/tools/CrawlTool')) : null;
 
 function ProtectedRoute({ children }) {
@@ -43,7 +43,7 @@ export default function App() {
                     <Route path="/calc/sg"        element={<SGCalc />} />
                     <Route path="/calc/rec"       element={<RecCalc />} />
                     <Route path="/data/saved"     element={<SavedData />} />
-                    {IS_DEV && <Route path="/data/crawl"  element={<CrawlData />} />}
+                    <Route path="/data/crawl"     element={<CrawlData />} />
                     {IS_DEV && <Route path="/tools/crawl" element={<CrawlTool />} />}
                     <Route path="/tools/manual"   element={<ManualTool />} />
                     <Route path="/settings/margin" element={<MarginSettings />} />

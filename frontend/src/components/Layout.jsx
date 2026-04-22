@@ -19,7 +19,7 @@ const NAV = [
     group: '데이터',
     items: [
       { to: '/data/saved', icon: '📦', label: '상품 저장 내역' },
-      ...(IS_DEV ? [{ to: '/data/crawl', icon: '📋', label: '크롤링 내역' }] : []),
+      { to: '/data/crawl', icon: '📋', label: '크롤링 내역' },
     ],
   },
   {
