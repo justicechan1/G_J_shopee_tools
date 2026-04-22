@@ -5,7 +5,7 @@ services:
     rootDir: backend
     pythonVersion: "3.11"
     buildCommand: pip install -r requirements.txt && PLAYWRIGHT_BROWSERS_PATH=0 playwright install --with-deps chromium
-    startCommand: playwright install --with-deps chromium && uvicorn main:app --host 0.0.0.0 --port $PORT
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     plan: free
     envVars:
       - key: PLAYWRIGHT_BROWSERS_PATH
