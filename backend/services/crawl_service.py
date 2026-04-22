@@ -171,17 +171,14 @@ def _playwright_crawl(keyword: str, log_fn: LogFn = None) -> List[dict]:
         page.goto(
             "https://www.oliveyoung.co.kr/store/main/main.do",
             wait_until="domcontentloaded",
+            timeout=60000,
         )
-        time.sleep(random.uniform(2, 3))
+        time.sleep(random.uniform(3, 5))
         _log(log_fn, "📄 페이지 로드 완료")
 
-        try:
-            search_input = page.locator("#header_search_input")
-            search_input.wait_for(state="visible", timeout=10000)
-            search_input.click()
-        except Exception:
-            search_input = page.get_by_placeholder("상품, 브랜드, 성분 검색")
-            search_input.click()
+        search_input = page.locator("#header_search_input")
+        search_input.wait_for(state="visible", timeout=30000)
+        search_input.click()
 
         _log(log_fn, f"🔍 검색어 입력 중: '{keyword}'")
         for char in keyword:
