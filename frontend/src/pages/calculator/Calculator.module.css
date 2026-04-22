@@ -1,0 +1,158 @@
+.pageWrap {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem;
+}
+
+.cfgInfo {
+  display: flex;
+  gap: 1.25rem;
+  padding: .25rem 0;
+}
+
+.cfgItem { display: flex; align-items: center; gap: .4rem; }
+.cfgKey  { font-size: 11px; color: var(--tx3); }
+.cfgVal  { font-size: 12px; color: var(--tx2); font-family: var(--font-mono); }
+
+.cfgNote {
+  font-size: 10px;
+  color: var(--tx3);
+  margin-top: 5px;
+}
+
+/* metric status cell */
+.metricStatus {
+  background: var(--bg2);
+  border: 1px solid var(--bd);
+  border-radius: var(--r8);
+  padding: .875rem 1rem;
+}
+.metricStatusLabel {
+  font-size: 10px;
+  color: var(--tx3);
+  margin-bottom: 7px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.saveRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .75rem;
+  margin-top: .5rem;
+}
+
+.savedMsg {
+  font-size: 12px;
+  color: #22c55e;
+  animation: fadeInOut 2s ease forwards;
+}
+
+@keyframes fadeInOut {
+  0%   { opacity: 0; transform: translateY(4px); }
+  15%  { opacity: 1; transform: translateY(0); }
+  70%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* rec table */
+.recTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: .5rem;
+}
+.recTable th {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--tx3);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  padding: 6px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--bd);
+}
+.recTable td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--bd);
+  font-size: 12.5px;
+  color: var(--tx1);
+}
+.recTable tr:last-child td { border-bottom: none; }
+.recTable tr:hover td { background: var(--bg2); }
+
+.mono { font-family: var(--font-mono); }
+
+/* ── 수익 계산하기 패널 ── */
+.goCalcWrap {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+.goCalcRow {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+
+.goCalcLabel {
+  font-size: 11px;
+  color: var(--tx3);
+  width: 42px;
+  flex-shrink: 0;
+}
+
+/* ── Segmented control ── */
+.segmented {
+  display: flex;
+  background: var(--bg2);
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.seg {
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--tx3);
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  white-space: nowrap;
+}
+.seg:hover { background: var(--bg3); color: var(--tx1); }
+
+.segActive {
+  background: var(--bg1);
+  color: var(--tx1);
+  box-shadow: 0 1px 3px rgba(0,0,0,.25);
+}
+
+/* ── 적용 판매가 미리보기 ── */
+.goCalcPreview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg2);
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+.goCalcPreviewLabel {
+  font-size: 11px;
+  color: var(--tx3);
+}
+
+.goCalcPreviewVal {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+}

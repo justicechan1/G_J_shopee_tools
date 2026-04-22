@@ -1,0 +1,11 @@
+.pageWrap {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem;
+}
+
+.saveRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}

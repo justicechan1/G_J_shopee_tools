@@ -1,0 +1,28 @@
+# 환경변수 (절대 커밋 금지)
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+
+# 디버그 / 테스트 산출물
+backend/crawl_debug_*.json
+backend/crawl_test_result.json
+
+# Node
+node_modules/
+frontend/node_modules/
+
+# 빌드 결과물
+frontend/dist/
+frontend/.vite/
+
+# OS
+.DS_Store
+Thumbs.db
