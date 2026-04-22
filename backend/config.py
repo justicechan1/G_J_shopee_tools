@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     supabase_anon_key: str
     supabase_service_key: str
     supabase_jwt_secret: str
-    cors_origins: str = "http://localhost:5173"
+    cors_origins: str = "http://localhost:5173,https://g-j-shopee-tools.vercel.app"
     gemini_api_keys: str = ""
 
     @property
