@@ -168,30 +168,15 @@ def _playwright_crawl(keyword: str, log_fn: LogFn = None) -> List[dict]:
             "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
         )
 
-        page.goto(
-            "https://www.oliveyoung.co.kr/store/main/main.do",
-            wait_until="domcontentloaded",
-            timeout=60000,
+        import urllib.parse
+        search_url = (
+            "https://www.oliveyoung.co.kr/store/search/getSearchMain.do"
+            f"?query={urllib.parse.quote(keyword)}&giftYn=N"
         )
-        time.sleep(random.uniform(3, 5))
+        _log(log_fn, f"🔍 검색 결과 직접 접속: '{keyword}'")
+        page.goto(search_url, wait_until="domcontentloaded", timeout=60000)
+        time.sleep(random.uniform(2, 3))
         _log(log_fn, "📄 페이지 로드 완료")
-
-        search_input = page.locator("#header_search_input")
-        search_input.wait_for(state="visible", timeout=30000)
-        search_input.click()
-
-        _log(log_fn, f"🔍 검색어 입력 중: '{keyword}'")
-        for char in keyword:
-            search_input.type(char, delay=random.randint(80, 150))
-        time.sleep(random.uniform(0.5, 1.0))
-
-        try:
-            page.locator("#searchSubmit").click()
-        except Exception:
-            search_input.press("Enter")
-
-        page.wait_for_load_state("domcontentloaded")
-        time.sleep(2)
 
         _log(log_fn, "⏳ 검색 결과 대기 중...")
         try:
