@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../store/useStore';
-import { calcResultsApi, productsApi } from '../../utils/api';
+import { calcResultsApi, productsApi, calcResultToFE } from '../../utils/api';
 import PageHeader from '../../components/PageHeader';
 import { Card, Button, Empty } from '../../components/UI';
 import styles from './DataPages.module.css';
@@ -22,6 +22,8 @@ export default function SavedData() {
   const [calcPage,   setCalcPage]   = useState(0);
   const [calcSearch, setCalcSearch] = useState('');
   const [loadingC,   setLoadingC]   = useState(true);
+  const [calcEditId,   setCalcEditId]   = useState(null);
+  const [calcEditVals, setCalcEditVals] = useState({});
 
   // ── 저장 상품 상태 ─────────────────────────────────────────
   const [prodItems,  setProdItems]  = useState([]);
@@ -93,6 +95,18 @@ export default function SavedData() {
   function goProdPage(p) {
     const pg = Math.max(0, Math.min(p, prodTotalPages - 1));
     setProdPage(pg);
+  }
+
+  // ── 계산 결과 편집 ────────────────────────────────────────
+  function startCalcEdit(item) { setCalcEditId(item.id); setCalcEditVals({ ...item }); }
+  function cancelCalcEdit()    { setCalcEditId(null); }
+
+  async function saveCalcEdit() {
+    try {
+      const updated = await calcResultsApi.update(calcEditId, calcEditVals, token);
+      setCalcItems(prev => prev.map(i => i.id === calcEditId ? updated : i));
+    } catch (e) { alert(e.message); }
+    setCalcEditId(null);
   }
 
   // ── 계산 결과 삭제 ────────────────────────────────────────
@@ -219,21 +233,73 @@ export default function SavedData() {
               </Empty>
             ) : (
               <>
+                <div className={styles.scrollX}>
                 <table className={styles.table}>
                   <thead>
                     <tr>
-                      <th>시장</th><th>상품명</th><th>원가</th><th>판매가</th>
+                      <th>이미지</th><th>시장</th><th>상품명</th>
+                      <th>도매가(원)</th><th>시장가(원)</th><th>판매가</th>
                       <th>중량(g)</th><th>순이익</th><th>마진율</th><th>저장일</th><th>작업</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {calcItems.map(item => (
+                    {calcItems.map(item => calcEditId === item.id ? (
+                      <tr key={item.id} className={styles.editingRow}>
+                        <td>
+                          <input type="text" className={styles.editInput}
+                            placeholder="이미지 URL"
+                            value={calcEditVals.image ?? ''}
+                            onChange={e => setCalcEditVals(p => ({ ...p, image: e.target.value }))} />
+                        </td>
+                        <td className={styles.muted}>{item.market}</td>
+                        <td>
+                          <input type="text" className={styles.editInput}
+                            value={calcEditVals.name ?? ''}
+                            onChange={e => setCalcEditVals(p => ({ ...p, name: e.target.value }))} />
+                        </td>
+                        <td>
+                          <input type="number" className={styles.editInput}
+                            value={calcEditVals.cost ?? ''}
+                            onChange={e => setCalcEditVals(p => ({ ...p, cost: e.target.value }))} />
+                        </td>
+                        <td>
+                          <input type="number" className={styles.editInput}
+                            value={calcEditVals.marketPrice ?? ''}
+                            onChange={e => setCalcEditVals(p => ({ ...p, marketPrice: e.target.value }))} />
+                        </td>
+                        <td>
+                          <input type="text" className={styles.editInput}
+                            value={calcEditVals.price ?? ''}
+                            onChange={e => setCalcEditVals(p => ({ ...p, price: e.target.value }))} />
+                        </td>
+                        <td>
+                          <input type="number" className={styles.editInput}
+                            value={calcEditVals.weight ?? ''}
+                            onChange={e => setCalcEditVals(p => ({ ...p, weight: e.target.value }))} />
+                        </td>
+                        <td className={styles.muted}>—</td>
+                        <td className={styles.muted}>—</td>
+                        <td className={styles.muted}>{item.date}</td>
+                        <td>
+                          <div className={styles.actionBtns}>
+                            <Button variant="primary" onClick={saveCalcEdit}>저장</Button>
+                            <Button onClick={cancelCalcEdit}>취소</Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
                       <tr key={item.id}>
+                        <td>
+                          {item.image
+                            ? <img src={item.image} alt="" className={styles.imgThumb} />
+                            : <span className={styles.imgPlaceholder}>🧴</span>}
+                        </td>
                         <td>{item.market}</td>
                         <td className={styles.productName} title={item.name}>
                           {item.name || <span className={styles.muted}>—</span>}
                         </td>
-                        <td className={styles.mono}>{Math.round(item.cost).toLocaleString('ko-KR')}원</td>
+                        <td className={styles.mono}>{item.cost ? Math.round(item.cost).toLocaleString('ko-KR') + '원' : '—'}</td>
+                        <td className={styles.mono}>{item.marketPrice ? Number(item.marketPrice).toLocaleString('ko-KR') + '원' : <span className={styles.muted}>—</span>}</td>
                         <td className={styles.mono}>{item.price}</td>
                         <td className={styles.mono}>
                           {item.weight ? `${item.weight}g` : <span className={styles.muted}>—</span>}
@@ -247,12 +313,16 @@ export default function SavedData() {
                         </td>
                         <td className={styles.muted}>{item.date}</td>
                         <td>
-                          <Button variant="danger" onClick={() => deleteCalcItem(item.id)}>삭제</Button>
+                          <div className={styles.actionBtns}>
+                            <Button onClick={() => startCalcEdit(item)}>편집</Button>
+                            <Button variant="danger" onClick={() => deleteCalcItem(item.id)}>삭제</Button>
+                          </div>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+              </div>
 
                 <div className={styles.pagination}>
                   <button className={styles.pageBtn} onClick={() => goCalcPage(0)}              disabled={calcPage === 0}>«</button>

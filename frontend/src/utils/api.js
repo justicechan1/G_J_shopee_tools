@@ -131,15 +131,18 @@ const MKT_CODE  = { '🇸🇬 SG': 'SG', '🇻🇳 VN': 'VN' };
 
 export function calcResultToFE(d) {
   return {
-    id:     d.id,
-    market: MKT_EMOJI[d.market] || d.market,
-    name:   d.name      ?? '',
-    cost:   d.cost      ?? 0,
-    price:  d.sale_price ?? '',
-    weight: d.weight    ?? null,
-    profit: d.profit    ?? null,
-    margin: d.margin    ?? null,
-    date:   d.saved_date || (d.created_at ? new Date(d.created_at).toLocaleDateString('ko-KR') : ''),
+    id:             d.id,
+    market:         MKT_EMOJI[d.market] || d.market,
+    name:           d.name            ?? '',
+    cost:           d.cost            ?? 0,
+    price:          d.sale_price      ?? '',
+    weight:         d.weight          ?? null,
+    profit:         d.profit          ?? null,
+    margin:         d.margin          ?? null,
+    image:          d.image_url       ?? '',
+    marketPrice:    d.market_price    ?? null,
+    wholesalePrice: d.wholesale_price ?? null,
+    date:           d.saved_date || (d.created_at ? new Date(d.created_at).toLocaleDateString('ko-KR') : ''),
   };
 }
 
@@ -320,6 +323,19 @@ export const calcResultsApi = {
       .then(calcResultToFE);
   },
 
+  update: (id, data, token) => {
+    const payload = {
+      name:            data.name            || null,
+      cost:            data.cost    != null ? Number(data.cost)    : null,
+      sale_price:      data.price           || null,
+      weight:          data.weight  != null ? Number(data.weight)  : null,
+      image_url:       data.image           || null,
+      market_price:    data.marketPrice    != null ? Number(data.marketPrice)    : null,
+      wholesale_price: data.wholesalePrice != null ? Number(data.wholesalePrice) : null,
+    };
+    return request(`/api/calc/results/${id}`, { method: 'PUT', body: JSON.stringify(payload), token })
+      .then(calcResultToFE);
+  },
   delete:      (id, token)     => request(`/api/calc/results/${id}`, { method: 'DELETE', token }),
   deleteAll:   (token, market) => request('/api/calc/results' + qs({ market }), { method: 'DELETE', token }),
   deduplicate: (token)         => request('/api/calc/results/deduplicate', { method: 'POST', token }),

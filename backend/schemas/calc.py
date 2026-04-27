@@ -12,6 +12,21 @@ class CalcResultCreate(BaseModel):
     weight: Optional[int] = None
     profit: Optional[float] = None
     margin: Optional[float] = None
+    image_url: Optional[str] = None
+    market_price: Optional[int] = None
+    wholesale_price: Optional[int] = None
+
+
+class CalcResultUpdate(BaseModel):
+    name: Optional[str] = None
+    cost: Optional[int] = None
+    sale_price: Optional[str] = None
+    weight: Optional[int] = None
+    profit: Optional[float] = None
+    margin: Optional[float] = None
+    image_url: Optional[str] = None
+    market_price: Optional[int] = None
+    wholesale_price: Optional[int] = None
 
 
 class CalcResultOut(CalcResultCreate):

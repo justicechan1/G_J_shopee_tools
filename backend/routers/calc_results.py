@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from supabase import Client
 from dependencies import get_supabase, get_current_user
-from schemas.calc import CalcResultCreate, CalcResultOut, CalcResultListOut
+from schemas.calc import CalcResultCreate, CalcResultUpdate, CalcResultOut, CalcResultListOut
 from datetime import date
 from typing import Optional
 
@@ -37,6 +37,26 @@ def create_result(
     res = sb.table("calc_results").insert(payload).execute()
     if not res.data:
         raise HTTPException(status_code=500, detail="저장에 실패했습니다")
+    return CalcResultOut(**res.data[0])
+
+
+@router.put("/{result_id}", response_model=CalcResultOut)
+def update_result(
+    result_id: str,
+    body: CalcResultUpdate,
+    user: dict = Depends(get_current_user),
+    sb: Client = Depends(get_supabase),
+):
+    payload = {k: v for k, v in body.model_dump(exclude_unset=True).items()}
+    res = (
+        sb.table("calc_results")
+        .update(payload)
+        .eq("id", result_id)
+        .eq("user_id", user["id"])
+        .execute()
+    )
+    if not res.data:
+        raise HTTPException(status_code=404, detail="결과를 찾을 수 없습니다")
     return CalcResultOut(**res.data[0])
 
 
