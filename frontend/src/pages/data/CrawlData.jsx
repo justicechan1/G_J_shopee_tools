@@ -167,13 +167,15 @@ export default function CrawlData() {
     await crawlItemsApi.delete(id, token).catch(() => {});
     setItems(prev => prev.filter(i => i.id !== id));
     setTotal(prev => prev - 1);
+    setGrandTotal(prev => prev - 1);
+    loadKeywords();
     if (items.length === 1 && page > 0) goPage(page - 1);
   }
 
   async function deleteAll() {
     if (!window.confirm('크롤링 내역 전체를 삭제하시겠습니까?')) return;
     await crawlItemsApi.deleteAll(token).catch(() => {});
-    setItems([]); setTotal(0); setPage(0);
+    setItems([]); setTotal(0); setGrandTotal(0); setPage(0);
     setKeywords([]); setSelectedKw(null);
   }
 
