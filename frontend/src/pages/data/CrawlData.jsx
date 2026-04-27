@@ -94,6 +94,7 @@ export default function CrawlData() {
 
   const [items,      setItems]      = useState([]);
   const [total,      setTotal]      = useState(0);
+  const [grandTotal, setGrandTotal] = useState(0);
   const [loading,    setLoading]    = useState(true);
   const [editId,     setEditId]     = useState(null);
   const [editVals,   setEditVals]   = useState({});
@@ -114,6 +115,7 @@ export default function CrawlData() {
       const r = await crawlItemsApi.list(token, params);
       setItems(r.items);
       setTotal(r.total);
+      if (!q.trim() && !kw) setGrandTotal(r.total);
     } catch { /* 무시 */ } finally {
       setLoading(false);
     }
@@ -219,7 +221,7 @@ export default function CrawlData() {
                   className={`${styles.kwFilterChip} ${!selectedKw ? styles.kwFilterChipActive : ''}`}
                   onClick={() => selectKw(null)}
                 >
-                  전체 <span className={styles.kwFilterCount}>{total}</span>
+                  전체 <span className={styles.kwFilterCount}>{grandTotal}</span>
                 </button>
                 {keywords.map(({ keyword, count }) => (
                   <button
