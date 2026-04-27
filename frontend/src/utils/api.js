@@ -318,6 +318,7 @@ export const calcResultsApi = {
       weight:     item.weight ? Number(item.weight) : null,
       profit:     item.profit ?? null,
       margin:     item.margin ?? null,
+      image_url:  item.image_url || null,
     };
     return request('/api/calc/results', { method: 'POST', body: JSON.stringify(payload), token })
       .then(calcResultToFE);
