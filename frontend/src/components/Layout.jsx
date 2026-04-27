@@ -1,5 +1,5 @@
-import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { authApi } from '../utils/api';
 import styles from './Layout.module.css';
@@ -41,7 +41,11 @@ const NAV = [
 
 export default function Layout({ children }) {
   const { user, token, logout } = useStore((s) => ({ user: s.user, token: s.token, logout: s.logout }));
-  const navigate = useNavigate();
+  const navigate  = useNavigate();
+  const location  = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
 
   async function handleLogout() {
     try { await authApi.logout(token); } catch (_) {}
@@ -55,7 +59,8 @@ export default function Layout({ children }) {
 
   return (
     <div className={styles.shell}>
-      <aside className={styles.sidebar}>
+      {sidebarOpen && <div className={styles.overlay} onClick={() => setSidebarOpen(false)} />}
+      <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ''}`}>
         {/* Logo */}
         <div className={styles.logo}>
           <div className={styles.logoMark}>S</div>
@@ -100,6 +105,10 @@ export default function Layout({ children }) {
 
       {/* Content */}
       <div className={styles.main}>
+        <div className={styles.mobileHeader}>
+          <button className={styles.hamburger} onClick={() => setSidebarOpen(s => !s)}>☰</button>
+          <span className={styles.mobileTitle}>Shopee Tools</span>
+        </div>
         {children}
       </div>
     </div>

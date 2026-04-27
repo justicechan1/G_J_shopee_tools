@@ -4,6 +4,13 @@
   padding: 1.25rem;
 }
 
+@media (max-width: 768px) {
+  .pageWrap { padding: .75rem; }
+  .cfgInfo { flex-wrap: wrap; gap: .5rem; }
+  .saveRow { flex-wrap: wrap; }
+  .goCalcRow { flex-wrap: wrap; }
+}
+
 .cfgInfo {
   display: flex;
   gap: 1.25rem;
