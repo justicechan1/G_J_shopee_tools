@@ -315,7 +315,7 @@ def crawl_keywords(
                 "source":          "crawl",
             })
 
-            time.sleep(random.uniform(3.0, 5.0))
+            time.sleep(random.uniform(0.5, 1.0))
 
         time.sleep(delay)
 
