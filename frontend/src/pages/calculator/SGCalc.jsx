@@ -21,6 +21,7 @@ export default function SGCalc() {
   const [cost,   setCost]   = useState('');
   const [price,  setPrice]  = useState('');
   const [weight, setWeight] = useState('');
+  const [image,  setImage]  = useState('');
   const [saved,  setSaved]  = useState(false);
 
   useEffect(() => {
@@ -29,6 +30,7 @@ export default function SGCalc() {
       if (calcSeed.cost   != null) setCost(String(calcSeed.cost));
       if (calcSeed.weight != null) setWeight(String(calcSeed.weight));
       if (calcSeed.price  != null) setPrice(String(calcSeed.price.toFixed(2)));
+      if (calcSeed.image  != null) setImage(calcSeed.image);
       clearCalcSeed();
     }
   }, []);
@@ -47,13 +49,14 @@ export default function SGCalc() {
     if (!cost || !price || !weight) return;
     try {
       await calcResultsApi.create({
-        market: '🇸🇬 SG',
+        market:    '🇸🇬 SG',
         name,
-        cost:   Number(cost),
-        price:  `SGD ${Number(price).toFixed(2)}`,
-        weight: Number(weight),
+        cost:      Number(cost),
+        price:     `SGD ${Number(price).toFixed(2)}`,
+        weight:    Number(weight),
         profit,
         margin,
+        image_url: image || null,
       }, token);
     } catch { /* 백엔드 미연결 시 무시 */ }
     setSaved(true);

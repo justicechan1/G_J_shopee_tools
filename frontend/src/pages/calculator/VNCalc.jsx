@@ -21,6 +21,7 @@ export default function VNCalc() {
   const [cost,   setCost]   = useState('');
   const [price,  setPrice]  = useState('');
   const [weight, setWeight] = useState('');
+  const [image,  setImage]  = useState('');
   const [saved,  setSaved]  = useState(false);
 
   useEffect(() => {
@@ -29,6 +30,7 @@ export default function VNCalc() {
       if (calcSeed.cost   != null) setCost(String(calcSeed.cost));
       if (calcSeed.weight != null) setWeight(String(calcSeed.weight));
       if (calcSeed.price  != null) setPrice(String(Math.round(calcSeed.price)));
+      if (calcSeed.image  != null) setImage(calcSeed.image);
       clearCalcSeed();
     }
   }, []);
@@ -47,13 +49,14 @@ export default function VNCalc() {
     if (!cost || !price || !weight) return;
     try {
       await calcResultsApi.create({
-        market: '🇻🇳 VN',
+        market:    '🇻🇳 VN',
         name,
-        cost:   Number(cost),
-        price:  `${Math.round(Number(price)).toLocaleString('ko-KR')} VND`,
-        weight: Number(weight),
+        cost:      Number(cost),
+        price:     `${Math.round(Number(price)).toLocaleString('ko-KR')} VND`,
+        weight:    Number(weight),
         profit,
         margin,
+        image_url: image || null,
       }, token);
     } catch { /* 백엔드 미연결 시 무시 */ }
     setSaved(true);

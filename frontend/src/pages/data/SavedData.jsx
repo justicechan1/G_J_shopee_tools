@@ -170,6 +170,7 @@ export default function SavedData() {
       name:   item.name   || '',
       cost:   item.unitPrice ? Number(item.unitPrice) : '',
       weight: item.weight  ? Number(item.weight)  : '',
+      image:  item.image  || '',
     });
     navigate('/calc/rec');
   }

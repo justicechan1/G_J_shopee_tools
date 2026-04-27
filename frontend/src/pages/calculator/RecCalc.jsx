@@ -39,6 +39,7 @@ export default function RecCalc() {
   const [name,   setName]   = useState('');
   const [cost,   setCost]   = useState('');
   const [weight, setWeight] = useState('');
+  const [image,  setImage]  = useState('');
   const [market, setMarket] = useState('sg');
   const [tier,   setTier]   = useState('nor');
 
@@ -47,6 +48,7 @@ export default function RecCalc() {
       if (recSeed.name   != null) setName(recSeed.name);
       if (recSeed.cost   != null) setCost(String(recSeed.cost));
       if (recSeed.weight != null) setWeight(String(recSeed.weight));
+      if (recSeed.image  != null) setImage(recSeed.image);
       clearRecSeed();
     }
   }, []);
@@ -72,7 +74,7 @@ export default function RecCalc() {
 
   function handleGoCalc() {
     if (!c || !w || !recPrice) return;
-    setCalcSeed({ name, cost: c, weight: w, price: recPrice });
+    setCalcSeed({ name, cost: c, weight: w, price: recPrice, image });
     navigate(market === 'sg' ? '/calc/sg' : '/calc/vn');
   }
 
