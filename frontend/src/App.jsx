@@ -10,7 +10,6 @@ import RecCalc   from './pages/calculator/RecCalc';
 import SavedData from './pages/data/SavedData';
 import ManualTool  from './pages/tools/ManualTool';
 import { MarginSettings, RateSettings, FeeSettings } from './pages/settings/Settings';
-import Guide from './pages/guide/Guide';
 
 import './styles/global.css';
 
@@ -49,8 +48,7 @@ export default function App() {
                     <Route path="/settings/margin" element={<MarginSettings />} />
                     <Route path="/settings/rate"   element={<RateSettings />} />
                     <Route path="/settings/fee"    element={<FeeSettings />} />
-                    <Route path="/guide"           element={<Guide />} />
-                  </Routes>
+                    </Routes>
                 </React.Suspense>
               </Layout>
             </ProtectedRoute>

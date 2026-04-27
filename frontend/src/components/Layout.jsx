@@ -37,12 +37,6 @@ const NAV = [
       { to: '/settings/fee',    icon: '💸',  label: '수수료 설정' },
     ],
   },
-  {
-    group: '도움말',
-    items: [
-      { to: '/guide', icon: '📖', label: '사용 설명서' },
-    ],
-  },
 ];
 
 export default function Layout({ children }) {

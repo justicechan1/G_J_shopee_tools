@@ -10,7 +10,7 @@ async function _doRefresh() {
   _refreshPromise = (async () => {
     try {
       const { useStore } = await import('../store/useStore');
-      const { refreshToken, user, login } = useStore.getState();
+      const { refreshToken, user, login, logout } = useStore.getState();
       if (!refreshToken) throw new Error('refresh_token 없음');
 
       const res = await fetch(`${BASE_URL}/api/auth/refresh`, {
@@ -18,7 +18,12 @@ async function _doRefresh() {
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ refresh_token: refreshToken }),
       });
-      if (!res.ok) throw new Error('토큰 갱신 실패');
+
+      if (!res.ok) {
+        logout();
+        window.location.href = '/login';
+        throw new Error('토큰 갱신 실패');
+      }
 
       const data = await res.json();
       login({ access_token: data.access_token, refresh_token: data.refresh_token, user });
