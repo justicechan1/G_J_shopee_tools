@@ -249,8 +249,8 @@ async function crawlRequest(path, options = {}, _retry = false) {
 }
 
 export const crawlJobsApi = {
-  start:  (keywords, token) =>
-    crawlRequest('/api/crawl/start', { method: 'POST', body: JSON.stringify({ keywords }), token }),
+  start:  (keywords, token, mode = 'first') =>
+    crawlRequest('/api/crawl/start', { method: 'POST', body: JSON.stringify({ keywords, mode }), token }),
   status: (jobId, token) =>
     crawlRequest(`/api/crawl/jobs/${jobId}`, { token }),
   stop:   (jobId, token) =>

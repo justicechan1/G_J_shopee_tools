@@ -24,7 +24,7 @@ cd frontend
 npm run dev
 ```
 
-> `frontend/.env.local`의 `VITE_API_URL`이 `http://localhost:8000`으로 설정돼 있어야 합니다.
+> 크롤링 시에는 `frontend/.env.local`의 `VITE_API_URL`을 `http://localhost:8000`으로 임시 변경 후, 완료되면 `https://g-j-shopee-tools.onrender.com`으로 되돌리세요.
 
 ## 4. 크롤링
 

@@ -41,6 +41,7 @@ class CrawlItemListOut(BaseModel):
 
 class CrawlStartRequest(BaseModel):
     keywords: List[str]
+    mode: str = "first"  # "first" | "full"
 
 
 class CrawlJobOut(BaseModel):

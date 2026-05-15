@@ -17,6 +17,15 @@ RETRY_DELAY = 10
 LogFn = Optional[Callable[[str, str], None]]
 
 
+def _interruptible_sleep(seconds: float, stop_flag: dict):
+    """0.3초 간격으로 stop_flag를 확인하며 sleep."""
+    end = time.time() + seconds
+    while time.time() < end:
+        if stop_flag and stop_flag.get("stop"):
+            return
+        time.sleep(min(0.3, end - time.time()))
+
+
 def _log(log_fn: LogFn, msg: str, type: str = "info"):
     print(f"[crawl] {msg}")
     if log_fn:
@@ -40,7 +49,7 @@ class GeminiRotator:
             import google.generativeai as genai
             key = self.api_keys[self.current]
             genai.configure(api_key=key)
-            self._model = genai.GenerativeModel("gemini-3.1-flash-lite-preview")
+            self._model = genai.GenerativeModel("gemini-3.1-flash-lite")
         except Exception:
             self._model = None
 
@@ -129,7 +138,7 @@ def _clean_name(name: str) -> str:
 # ───────────────────────────────────���────────────────────────
 #  Playwright 크롤링 (1회 시도) — Olive2.py _do_crawl 그대로
 # ───────────────────────────────────────────��────────────────
-def _playwright_crawl(keyword: str, log_fn: LogFn = None) -> List[dict]:
+def _playwright_crawl(keyword: str, log_fn: LogFn = None, mode: str = "first", stop_flag: dict = None) -> List[dict]:
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
@@ -173,21 +182,7 @@ def _playwright_crawl(keyword: str, log_fn: LogFn = None) -> List[dict]:
             "https://www.oliveyoung.co.kr/store/search/getSearchMain.do"
             f"?query={urllib.parse.quote(keyword)}&giftYn=N"
         )
-        _log(log_fn, f"🔍 검색 결과 직접 접속: '{keyword}'")
-        page.goto(search_url, wait_until="domcontentloaded", timeout=60000)
-        time.sleep(random.uniform(2, 3))
-        _log(log_fn, "📄 페이지 로드 완료")
-
-        _log(log_fn, "⏳ 검색 결과 대기 중...")
-        try:
-            page.wait_for_selector("li.flag.li_result", timeout=8000)
-        except PlaywrightTimeout:
-            browser.close()
-            raise ValueError(f"검색 결과 없음: '{keyword}'")
-
-        time.sleep(1)
-
-        products = page.evaluate("""
+        EXTRACT_JS = """
             () => {
                 const items = document.querySelectorAll('li.flag.li_result');
                 const results = [];
@@ -215,9 +210,67 @@ def _playwright_crawl(keyword: str, log_fn: LogFn = None) -> List[dict]:
                 });
                 return results;
             }
-        """)
+        """
 
-        _log(log_fn, f"✅ {len(products)}개 상품 수집됨", "done")
+        _log(log_fn, f"🔍 검색 결과 직접 접속: '{keyword}'")
+        if stop_flag and stop_flag.get("stop"):
+            browser.close()
+            return []
+
+        page.goto(search_url, wait_until="domcontentloaded", timeout=60000)
+        _interruptible_sleep(random.uniform(2, 3), stop_flag or {})
+        _log(log_fn, "📄 페이지 로드 완료")
+
+        if stop_flag and stop_flag.get("stop"):
+            browser.close()
+            return []
+
+        _log(log_fn, "⏳ 검색 결과 대기 중...")
+        try:
+            page.wait_for_selector("li.flag.li_result", timeout=8000)
+        except PlaywrightTimeout:
+            browser.close()
+            raise ValueError(f"검색 결과 없음: '{keyword}'")
+
+        _interruptible_sleep(1, stop_flag or {})
+
+        products = page.evaluate(EXTRACT_JS)
+        _log(log_fn, f"📄 1페이지: {len(products)}개 수집", "info")
+
+        if mode == "full":
+            # 페이지네이션 링크에서 offset 목록 수집
+            page_offsets = page.evaluate("""
+                () => {
+                    const links = document.querySelectorAll('div.pageing.new a[onclick]');
+                    const offsets = [];
+                    links.forEach(a => {
+                        const m = (a.getAttribute('onclick') || '').match(/doPaging\\('(\\d+)'\\)/);
+                        if (m) offsets.push(m[1]);
+                    });
+                    return offsets;
+                }
+            """)
+            _log(log_fn, f"📑 총 {1 + len(page_offsets)}페이지 발견", "info")
+
+            for idx, offset in enumerate(page_offsets, 2):
+                if stop_flag and stop_flag.get("stop"):
+                    break
+                _log(log_fn, f"📄 {idx}페이지 크롤링 중 (offset={offset})...", "info")
+                # doPaging() 호출 후 AJAX 로드 완료까지 대기
+                page.evaluate(f"doPaging('{offset}')")
+                try:
+                    page.wait_for_load_state("networkidle", timeout=10000)
+                except PlaywrightTimeout:
+                    pass
+                _interruptible_sleep(random.uniform(0.8, 1.2), stop_flag or {})
+                page_products = page.evaluate(EXTRACT_JS)
+                if not page_products:
+                    _log(log_fn, f"  ⚠️ {idx}페이지 상품 없음 → 중단", "warn")
+                    break
+                _log(log_fn, f"  ✅ {idx}페이지: {len(page_products)}개 수집", "sub")
+                products.extend(page_products)
+
+        _log(log_fn, f"✅ 총 {len(products)}개 상품 수집됨", "done")
         browser.close()
 
     for prod in products:
@@ -232,18 +285,18 @@ def _playwright_crawl(keyword: str, log_fn: LogFn = None) -> List[dict]:
 # ───────────────────────────────────────────────────────────���
 #  단일 시도 래퍼
 # ────────────────────────────────────────────────────────────
-def _do_crawl(keyword: str, log_fn: LogFn = None) -> List[dict]:
-    return _playwright_crawl(keyword, log_fn)
+def _do_crawl(keyword: str, log_fn: LogFn = None, mode: str = "first", stop_flag: dict = None) -> List[dict]:
+    return _playwright_crawl(keyword, log_fn, mode=mode, stop_flag=stop_flag)
 
 
 # ───────────────────────────────���────────────────────────────
 #  단일 키워드 크롤링 (재시도 포함)
 # ────────────────────────────────────────��───────────────────
-def _crawl_keyword(keyword: str, log_fn: LogFn = None) -> List[dict]:
+def _crawl_keyword(keyword: str, log_fn: LogFn = None, mode: str = "first", stop_flag: dict = None) -> List[dict]:
     for attempt in range(1, MAX_RETRY + 1):
         _log(log_fn, f"🌐 크롤링 시도 {attempt}/{MAX_RETRY}: '{keyword}'", "running")
         try:
-            return _do_crawl(keyword, log_fn)
+            return _do_crawl(keyword, log_fn, mode=mode, stop_flag=stop_flag)
         except ValueError as e:
             _log(log_fn, f"⚠️ {e} → 스킵", "warn")
             return []
@@ -252,7 +305,7 @@ def _crawl_keyword(keyword: str, log_fn: LogFn = None) -> List[dict]:
             print(traceback.format_exc())
             if attempt < MAX_RETRY:
                 _log(log_fn, f"⏳ {RETRY_DELAY}초 후 재시도...", "info")
-                time.sleep(RETRY_DELAY)
+                _interruptible_sleep(RETRY_DELAY, stop_flag or {})
     return []
 
 
@@ -265,6 +318,7 @@ def crawl_keywords(
     gemini_keys: Optional[List[str]] = None,
     delay: float = 3.0,
     log_fn: LogFn = None,
+    mode: str = "first",
 ) -> List[dict]:
     gemini = GeminiRotator(gemini_keys or [])
     use_gemini = bool(gemini_keys)
@@ -279,7 +333,7 @@ def crawl_keywords(
         _log(log_fn, f"{'─'*38}", "info")
         _log(log_fn, f"[{i}/{total}] 🔍 '{kw}'", "running")
 
-        raw = _crawl_keyword(kw, log_fn)
+        raw = _crawl_keyword(kw, log_fn, mode=mode, stop_flag=stop_flag)
 
         if not raw:
             _log(log_fn, f"⏭️  '{kw}' 결과 없음 → 다음 검색어로", "warn")
@@ -315,9 +369,11 @@ def crawl_keywords(
                 "source":          "crawl",
             })
 
-            time.sleep(random.uniform(0.5, 1.0))
+            _interruptible_sleep(random.uniform(0.5, 1.0), stop_flag)
 
-        time.sleep(delay)
+        if stop_flag.get("stop"):
+            break
+        _interruptible_sleep(delay, stop_flag)
 
     _log(log_fn, f"{'─'*38}", "info")
     _log(log_fn, f"🎉 전체 완료! 총 {len(all_products)}개 상품 수집됨", "done")

@@ -23,7 +23,7 @@ def _add_log(job_id: str, msg: str, type: str = "info"):
     _job_logs[job_id].append({"msg": msg, "type": type})
 
 
-def _run_crawl(job_id: str, keywords: list, user_id: str):
+def _run_crawl(job_id: str, keywords: list, user_id: str, mode: str = "first"):
     settings  = get_settings()
     sb        = create_client(settings.supabase_url, settings.supabase_service_key)
     stop_flag = _running_jobs.setdefault(job_id, {"stop": False})
@@ -43,7 +43,7 @@ def _run_crawl(job_id: str, keywords: list, user_id: str):
     log_fn(f"🔑 Gemini 키 {len(gemini_keys)}개 로드됨")
 
     try:
-        products = crawl_keywords(keywords, stop_flag, gemini_keys=gemini_keys, log_fn=log_fn)
+        products = crawl_keywords(keywords, stop_flag, gemini_keys=gemini_keys, log_fn=log_fn, mode=mode)
         debug["products"] = products
         dump_path.write_text(json.dumps(debug, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -102,7 +102,7 @@ def start_crawl(
     job_id = job["id"]
     _job_logs[job_id] = []
 
-    background_tasks.add_task(_run_crawl, job_id, body.keywords, user["id"])
+    background_tasks.add_task(_run_crawl, job_id, body.keywords, user["id"], body.mode)
 
     return CrawlJobOut(
         job_id=job_id, status="running",

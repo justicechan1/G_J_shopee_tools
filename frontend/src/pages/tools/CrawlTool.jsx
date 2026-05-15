@@ -16,6 +16,7 @@ export default function CrawlTool() {
   const [running,  setRunning]  = useState(false);
   const [progress, setProgress] = useState({ cur: 0, total: 0 });
   const [jobId,    setJobId]    = useState(null);
+  const [mode,     setMode]     = useState('first');
 
   const statusPollRef = useRef(null);
   const logPollRef    = useRef(null);
@@ -53,7 +54,7 @@ export default function CrawlTool() {
 
     let job;
     try {
-      job = await crawlJobsApi.start(kwList, token);
+      job = await crawlJobsApi.start(kwList, token, mode);
     } catch (e) {
       setRunning(false);
       appendCrawlLogs([{ msg: `크롤링 시작 실패: ${e.message}`, type: 'err' }]);
@@ -142,6 +143,26 @@ export default function CrawlTool() {
                     </span>
                   ))
                 }
+              </div>
+
+              <div className={styles.modeRow}>
+                <span className={styles.modeLabel}>크롤링 방식</span>
+                <div className={styles.modeSeg}>
+                  <button
+                    className={`${styles.modBtn} ${mode === 'first' ? styles.modBtnActive : ''}`}
+                    onClick={() => setMode('first')}
+                    disabled={running}
+                  >
+                    첫화면만
+                  </button>
+                  <button
+                    className={`${styles.modBtn} ${mode === 'full' ? styles.modBtnActive : ''}`}
+                    onClick={() => setMode('full')}
+                    disabled={running}
+                  >
+                    전체상품
+                  </button>
+                </div>
               </div>
 
               <div className={styles.btnRow}>
